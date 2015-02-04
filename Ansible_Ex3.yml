@@ -1,0 +1,69 @@
+#Folder EX_3
+# I have created a folder called roles and a file called site.yml
+# path: ~/Desktop/ANSIBLE/EX_3
+# site.yml
+---
+- name: Generate configuration file
+hosts: local
+roles:
+- switch
+# Inside Roles I have created a folder called 'switch',
+# Inside switch I have created three folders, 'tasks' , 'templates' , 'vars'
+# path: ~/Desktop/ANSIBLE/EX_3/roles/switch/tasks
+# path: ~/Desktop/ANSIBLE/EX_3/roles/switch/templates
+# path ~/Desktop/ANSIBLE/EX_3/roles/switch/vars
+# tasks/main.yml
+---
+- name: Generate configuration file
+template: src=switch_config.j2 dest=~/Desktop/ANSIBLE/Config_files_Ex3/{{item.hostname}}.txt
+with_items: variable
+# vars/main.yml
+variable:
+- {hostname: pynet-rtr1, secret: 12345, access_vlan: 100, ip_addr: 192.168.1.100, default_gateway: 192.168.1.1, snmp_community: hello}
+- {hostname: pynet-rtr2, secret: 12345, access_vlan: 100, ip_addr: 192.168.2.100, default_gateway: 192.168.2.1, snmp_community: hello}
+- {hostname: pynet-rtr3, secret: 12345, access_vlan: 100, ip_addr: 192.168.3.100, default_gateway: 192.168.3.1, snmp_community: hello}
+- {hostname: pynet-rtr4, secret: 12345, access_vlan: 100, ip_addr: 192.168.4.100, default_gateway: 192.168.4.1, snmp_community: hello}
+- {hostname: pynet-rtr5, secret: 12345, access_vlan: 100, ip_addr: 192.168.5.100, default_gateway: 192.168.5.1, snmp_community: hello}
+- {hostname: pynet-rtr6, secret: 12345, access_vlan: 100, ip_addr: 192.168.6.100, default_gateway: 192.168.6.1, snmp_community: hello}
+- {hostname: pynet-rtr7, secret: 12345, access_vlan: 100, ip_addr: 192.168.7.100, default_gateway: 192.168.7.1, snmp_community: hello}
+# templates/swicth_config.j2
+service timestamps debug datetime msec localtime show-timezone
+service timestamps log datetime msec localtime show-timezone
+!
+hostname {{item.hostname}}
+!
+logging buffered 32000
+no logging console
+enable secret 0 {{item.secret}}
+!
+!
+!
+!
+{% for int_num in range(1, 25) %}
+interface FastEthernet0/{{int_num}}
+switchport access vlan {{item.access_vlan}}
+switchport mode access
+spanning-tree portfast
+!
+{% endfor %}
+!
+interface Vlan1
+ip address {{item.ip_addr}} 255.255.255.0
+no ip route-cache
+!
+ip default-gateway {{item.default_gateway}}
+snmp-server community {{item.snmp_community}} RO
+!
+!
+line con 0
+line vty 0 4
+login
+line vty 5 15
+login
+!
+!
+end
+# you need to create a destination for the files
+# dest = ~/Desktop/ANSIBLE/Config_files_Ex3/{{item.hostname}}.txt
+# to compile, under the folder ~/Desktop/ANSIBLE/Ex_3, type "ansible-playbook site.yml"
+## Regards Seb1256
